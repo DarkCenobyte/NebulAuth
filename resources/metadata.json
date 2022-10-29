@@ -1,0 +1,5 @@
+{
+    "name": "NebulAuth Authentication NFT",
+    "description": "This NFT is read-only ERC721, and will be the property of its current owner forever, it is attach to a weight value that can only be increase, and allow to perform authentication through NebulAuth protocol.",
+    "image": "ipfs://bafkreigfw2ehhko7cb7unbx5hxw63653ai635wzguh2b7zoxbgdexwlhjy"
+}
