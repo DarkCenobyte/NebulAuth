@@ -11,6 +11,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 // Usefull to read: https://gist.github.com/Ankarrr/6d14a2f73dd12cf889130946f0ef1629
 // + https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.7.3/contracts/utils/cryptography/ECDSA.sol + https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.7.3/contracts/utils/cryptography/draft-EIP712.sol
 
+// TODO: Implement a method to disable payment contract in case of problem
+// TODO: Weight must be agnostic of the paymentContract decimals
 contract NebulAuth is ERC721Frozen, EIP712, ReentrancyGuard {
     string public constant PAYLOAD_MSG_SIGNATURE = "message(string websiteDomain,uint256 currentBlock,bytes32 uniqueToken)";
 
@@ -28,7 +30,7 @@ contract NebulAuth is ERC721Frozen, EIP712, ReentrancyGuard {
     uint8 private constant _paymentCurrencyContract2decimals = 6;
     
     // TODO: Dummy token below to replace later
-    address private constant _paymentCurrencyContract3 = address(0xaee53Fb91a9893D1570A12D063d8e7880F79BF24);
+    address private constant _paymentCurrencyContract3 = 0x6Dc068b818079aD15fdd87E3F0758F95627eEAb4; // address(0) to disable
     uint8 private constant _paymentCurrencyContract3decimals = 6;
 
     mapping(address => uint256) private _weight;
