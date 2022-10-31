@@ -26,8 +26,10 @@ contract NebulAuth is ERC721Frozen, EIP712, ReentrancyGuard {
     uint8 private constant _paymentCurrencyContract1decimals = 6;
     address private constant _paymentCurrencyContract2 = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // USDC
     uint8 private constant _paymentCurrencyContract2decimals = 6;
-    address private constant _paymentCurrencyContract3 = address(0);
-    uint8 private constant _paymentCurrencyContract3decimals = 0;
+    
+    // TODO: Dummy token below to replace later
+    address private constant _paymentCurrencyContract3 = address(0xaee53Fb91a9893D1570A12D063d8e7880F79BF24);
+    uint8 private constant _paymentCurrencyContract3decimals = 6;
 
     mapping(address => uint256) private _weight;
 
@@ -35,11 +37,7 @@ contract NebulAuth is ERC721Frozen, EIP712, ReentrancyGuard {
     event IncreasedWeight(address indexed owner, uint256 indexed totalWeight, uint256 addedWeight, address currencyContract);
 
     // Constructor
-    constructor(
-        string memory name,
-        string memory symbol,
-        string memory version
-    ) ERC721(name, symbol) EIP712(name, version) {}
+    constructor() ERC721("NebulAuth", "NAUTH") EIP712("NebulAuth", "1") {}
 
     // Public functions
     function mint(uint256 weight, address paymentContract) external {
