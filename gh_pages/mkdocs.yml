@@ -1,0 +1,5 @@
+site_name: NebulAuth Documentation
+theme:
+  name: material
+  palette:
+    scheme: slate

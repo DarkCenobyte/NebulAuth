@@ -1,4 +1,16 @@
 // SPDX-License-Identifier: MIT
+/**
+ * NebulAuth protocol by DarkCenobyte
+ * Usage:
+ * - mint an ERC721-compatible read-only NFT (non-exchangeable, non-burnable, ...)
+ * - associate this NFT with a "weight" value (only increasable) using USDT, USDC or BUSD
+ * - use an ipfs stored with services using NebulAuth protocol for signup/signin
+ * 
+ * Official Websites:
+ * - nebulauth.one
+ * - nebulauth.blockchain
+ * - nebulauth.crypto
+ */
 
 pragma solidity ^0.8.16;
 
@@ -28,10 +40,8 @@ contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
     uint8 private _paymentCurrencyContract1decimals = 6;
     address private _paymentCurrencyContract2 = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // USDC
     uint8 private _paymentCurrencyContract2decimals = 6;
-    
-    // TODO: Dummy token below; remove before mainnet
-    address private _paymentCurrencyContract3 = 0x4E37741d848B84D38c9287Bc75A4CD1d9e7FF1b0; // address(0) to disable
-    uint8 private _paymentCurrencyContract3decimals = 6;
+    address private _paymentCurrencyContract3 = 0x4Fabb145d64652a948d72533023f6E7A623C7C53; // BUSD
+    uint8 private _paymentCurrencyContract3decimals = 18;
 
     mapping(address => uint256) private _weight;
 
