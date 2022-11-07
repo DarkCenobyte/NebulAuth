@@ -3,3 +3,5 @@ theme:
   name: material
   palette:
     scheme: slate
+  logo: img/logo.png
+  favicon: img/favicon.png
