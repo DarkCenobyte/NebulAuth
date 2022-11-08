@@ -129,15 +129,56 @@ window._NEBULAUTH_CHAINID = 11155111;
 window._NEBULAUTH_VERSION = '1';
 window._NEBULAUTH_NAME = 'NebulAuth';
 
+const keys = ['nauth_antiphishing', 'nauth_mail', 'nauth_username', 'nauth_updatedat'];
 function getCookieValue(key) {
-return document.cookie.split('; ').find((r) => r.startsWith(key + '='))?.split('=')[1];
+return decodeURIComponent(document.cookie.split('; ').find((r) => r.startsWith(key + '='))?.split('=')[1] || '');
+}
+function getDomain() {
+return window.location.hostname.replace('auth.', '');
 }
 function loadCookie() {
 const antiphishing = getCookieValue('nauth_antiphishing');
 window.NEBULAUTH_USER_MAIL = getCookieValue('nauth_mail');
 window.NEBULAUTH_USER_USERNAME = getCookieValue('nauth_username');
+window.NEBULAUTH_USER_UPDATED_AT = getCookieValue('nauth_updatedat');
 if (antiphishing) {
 document.getElementById('antiphishing').textContent = 'Anti-phishing code: ' + antiphishing;
+}
+}
+function exportToLocalStorage() {
+for (const key of keys) {
+localStorage.setItem(key, getCookieValue(key));
+}
+}
+function importFromLocalStorage() {
+for (const key of keys) {
+updateCookie(key, localStorage.getItem(key), false, false);
+}
+}
+function updateCookie(key, value, updateDate = true, replicateToLocalStorage = true) {
+document.cookie = key + '=' + encodeURIComponent(value) + '; domain=' + getDomain() + '; max-age=34560000; SameSite=strict; Secure';
+if (updateDate) {
+document.cookie = 'nauth_updatedat=' + Date.now() + '; domain=' + getDomain() + '; max-age=34560000; SameSite=strict; Secure';
+}
+if (replicateToLocalStorage) {
+exportToLocalStorage();
+}
+}
+function checkCookie() {
+for (const key of keys) {
+if (localStorage.getItem(key) === undefined || localStorage.getItem(key) === null) {
+localStorage.setItem(key, '');
+}
+}
+const last_localStorage = localStorage.getItem('nauth_updatedat');
+const last_cookie = getCookieValue('nauth_updatedat');
+if (!last_cookie && !last_localStorage) {
+return;
+}
+if (parseInt(last_cookie || 0, 10) > parseInt(last_localStorage || 0, 10)) {
+exportToLocalStorage();
+} else {
+importFromLocalStorage();
 }
 }
 async function sign() {
@@ -233,11 +274,13 @@ message: payload.message,
 signature
 }));
 const optionalData = btoa(JSON.stringify({
-username: NEBULAUTH_USER_USERNAME,
-mail: NEBULAUTH_USER_MAIL
+username: NEBULAUTH_USER_USERNAME === '' ? undefined : NEBULAUTH_USER_USERNAME,
+mail: NEBULAUTH_USER_MAIL === '' ? undefined : NEBULAUTH_USER_MAIL
 }));
 window.location = redirectionUrl.href + callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'nebulauth_response=' + nebulauthResponse + '&nebulauth_optional=' + optionalData;
 }
+checkCookie();
+loadCookie();
 document.addEventListener('DOMContentLoaded', sign, false);
 </script>
 </body>
