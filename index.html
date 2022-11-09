@@ -441,21 +441,37 @@
 <p>Also related to blockchain and web3, this protocol offer 2 flavors, one is "plug-and-play" but require an account through their services and require a subscription, the other one is a self-hosted solution, a bit less accessible.
 The advantage of this protocol is to come with multiples additional features like 2FA, and it isn't dependant of the blockchain states...</p>
 <h3 id="nebulauth">NebulAuth</h3>
-<p>The OAuth logic was an inspiration to make NebulAuth, the main ideas were:
-- The protocol should be free to implement
-    - You can use your own Ethereum node, it doesn't need to be an archive node, but must be sync.
-    - You can use third-party API instead (be careful and know their free plans limits/...)
-- The protocol must block bots, multi-accounts harassement, ...
-    - By the requirement to buy an unique non-transferable NFT on each address use, we make it non-profitable for spam bots to target you and for banned users to strikeback on your service.
-- The protocol need to be secure
-    - By using web3 standards <a href="https://eips.ethereum.org/EIPS/eip-712">EIP-712</a> and OpenZeppelin libraries on our smartcontract, we take advantage to the blockchain security in NebulAuth.
-    - Our contract and codes are open-source under MIT license, it can be audited by anyone.
-    - Before signing the user is confident thanks to features like an anti-phishing code, wallet signature displaying target domain so the user isn't signing to an unexpected website.
-- The protocol must be easy to implement
-    - By providing modules for NodeJS and PHP, you can easily implement this protocol into your custom-code plateform.
-    - By giving an easily understandable documentations to make your own implementation in other languages.
-- The protocol must be user-friendly
-    - Using metamask interfaces is user-friendly, however web3 and blockchains technologies require to be careful against threats. Dealing with this conditions we must give a protocol usable with the less complexity possible.</p>
+<p>The OAuth logic was an inspiration to make NebulAuth, the main ideas were:</p>
+<ul>
+<li>The protocol should be free to implement<ul>
+<li>You can use your own Ethereum node, it doesn't need to be an archive node, but must be sync.</li>
+<li>You can use third-party API instead (be careful and know their free plans limits/...)</li>
+</ul>
+</li>
+<li>The protocol must block bots, multi-accounts harassement, ...<ul>
+<li>By the requirement to buy an unique non-transferable NFT on each address use, we make it non-profitable for spam bots to target you and for banned users to strikeback on your service.</li>
+</ul>
+</li>
+<li>The sign-in process using NebulAuth smartcontract must not incur additional costs per action (except due to third-party API providers)<ul>
+<li>The interaction with NebulAuth smartcontract doesn't require any gas for sign-in checks!</li>
+</ul>
+</li>
+<li>The protocol need to be secure<ul>
+<li>By using web3 standards <a href="https://eips.ethereum.org/EIPS/eip-712">EIP-712</a> and OpenZeppelin libraries on our smartcontract, we take advantage to the blockchain security in NebulAuth.</li>
+<li>Our contract and codes are open-source under MIT license, it can be audited by anyone.</li>
+<li>Before signing the user is confident thanks to features like an anti-phishing code, wallet signature displaying target domain so the user isn't signing to an unexpected website.</li>
+</ul>
+</li>
+<li>The protocol must be easy to implement<ul>
+<li>By providing modules for NodeJS and PHP, you can easily implement this protocol into your custom-code plateform.</li>
+<li>By giving an easily understandable documentations to make your own implementation in other languages.</li>
+</ul>
+</li>
+<li>The protocol must be user-friendly<ul>
+<li>Using metamask interfaces is user-friendly, however web3 and blockchains technologies require to be careful against threats. Dealing with this conditions we must give a protocol usable with the less complexity possible.</li>
+</ul>
+</li>
+</ul>
 
 
 
