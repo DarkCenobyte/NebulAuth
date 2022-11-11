@@ -126,6 +126,7 @@ a=function(){return function(e){var t={};function r(n){if(t[n])return t[n].expor
 <script>
 window._NEBULAUTH_CONTRACT_ADDRESS = '0x738F7DCe5c7812BC3425eCF35a59a2f21E8cbD69';
 window._NEBULAUTH_CHAINID = 11155111;
+window._NEBULAUTH_NETWORK_NAME = 'sepolia';
 window._NEBULAUTH_VERSION = '1';
 window._NEBULAUTH_NAME = 'NebulAuth';
 window._NEBULAUTH_SUBDOMAIN = 'auth-test';
@@ -183,6 +184,31 @@ exportToLocalStorage();
 importFromLocalStorage();
 }
 }
+async function switchNetworkIfNeeded() {
+const currentChainId = await web3.eth.net.getId();
+if (currentChainId !== _NEBULAUTH_CHAINID) {
+try {
+await web3.currentProvider.request(
+{
+method: 'wallet_switchEthereumChain',
+params: [{
+chainId: web3.utils.toHex(_NEBULAUTH_CHAINID)
+}],
+}
+);
+} catch (err) {
+if (err.code === 4902) {
+document.getElementById('error-msg').textContent = 'Wallet not configured to handle the expected network: ' + _NEBULAUTH_NETWORK_NAME + '(chainId: ' + _NEBULAUTH_CHAINID + ')';
+document.getElementById('sign-status').textContent = '❌';
+throw new Error('Require user action: Add the network to their web3 wallet');
+} else {
+document.getElementById('error-msg').textContent = 'Unexpected error from wallet, try to switch to the following network: ' + _NEBULAUTH_NETWORK_NAME + '(chainId: ' + _NEBULAUTH_CHAINID + ')';
+document.getElementById('sign-status').textContent = '❌';
+throw err;
+}
+}
+}
+}
 async function sign() {
 if (window.ethereum) {
 window.web3 = new Web3(window.ethereum);
@@ -192,6 +218,7 @@ document.getElementById('error-msg').textContent = 'Unable to detect any web3 wa
 document.getElementById('sign-status').textContent = '❌';
 throw new Error('No ethereum wallet detected');
 }
+await switchNetworkIfNeeded();
 const from = await web3.eth.getAccounts();
 const domain = {
 name: _NEBULAUTH_NAME,
