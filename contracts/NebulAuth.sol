@@ -17,21 +17,21 @@ pragma solidity ^0.8.16;
 import "./ERC721Frozen.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
     // public
     string public constant AUTHORIZER_SIGNATURE = "Authorizer(string websiteDomain,uint256 currentBlock,bytes32 uniqueToken)";
-    uint8 public constant blockTimeTolerance = 2;
-    uint8 public constant weightDecimals = 18; // MUST BE >= TO THE HIGHEST PAYMENT CONTRACT DECIMAL VALUE
-    uint256 public constant minimalWeight = 10 * (10 ** weightDecimals); // minimal weight to pay at mint (weight = 10)
+    uint8 public constant BLOCK_TIME_TOLERANCE = 2;
+    uint8 public constant WEIGHT_DECIMALS = 18; // MUST BE >= TO THE HIGHEST PAYMENT CONTRACT DECIMAL VALUE
+    uint256 public constant MINIMAL_WEIGHT = 10 * (10 ** WEIGHT_DECIMALS); // minimal weight to pay at mint (weight = 10)
 
     // private
-    string private constant _baseTokenURI = "ipfs://bafkreiglvmyo6jjaj3etjtwvgf424z3mstb47zalatazf4q7jb5oxlnk34";
+    string private constant _BASE_TOKEN_URI = "ipfs://bafkreiglvmyo6jjaj3etjtwvgf424z3mstb47zalatazf4q7jb5oxlnk34";
     bytes32 private constant _AUTHORIZER_SIGNATURE_TYPEHASH = keccak256(abi.encodePacked(keccak256(bytes(AUTHORIZER_SIGNATURE))));
-    address private constant _fundsAddress = 0x62edbdDe4a140B3321969C573FCaCc0BEa3C7976;
+    address private constant _FUNDS_ADDRESS = 0x62edbdDe4a140B3321969C573FCaCc0BEa3C7976;
     uint8 private constant _PAYMENT_CONTRACT_1 = 1;
     uint8 private constant _PAYMENT_CONTRACT_2 = 2;
     uint8 private constant _PAYMENT_CONTRACT_3 = 3;
@@ -53,7 +53,7 @@ contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
     constructor() ERC721("NebulAuth", "NAUTH") EIP712("NebulAuth", "1") {}
 
     // Owner function
-    function admin_changePaymentContract(uint8 paymentContractId, address newAddress, uint8 newDecimals) onlyOwner external {
+    function AdminChangePaymentContract(uint8 paymentContractId, address newAddress, uint8 newDecimals) onlyOwner external {
         require(paymentContractId <= _PAYMENT_CONTRACT_3, "");
         if (paymentContractId == _PAYMENT_CONTRACT_1) {
             _paymentCurrencyContract1 = newAddress;
@@ -76,8 +76,8 @@ contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
     function mint(address to, uint256 weightPrice, address paymentContract) nonReentrant public {
         require(balanceOf(to) == 0, "NebulAuth: This address already own a NebulAuth NFT");
         uint256 decimals = _getDecimalForPaymentContract(paymentContract);
-        uint256 weightValue = weightPrice * (10 ** (weightDecimals - decimals));
-        require(weightValue >= minimalWeight, "NebulAuth: Unsufficient weight");
+        uint256 weightValue = weightPrice * (10 ** (WEIGHT_DECIMALS - decimals));
+        require(weightValue >= MINIMAL_WEIGHT, "NebulAuth: Unsufficient weight");
 
         _mint(to, _castAddressToUint256(to));
         _pay(weightPrice, paymentContract);
@@ -85,7 +85,7 @@ contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
         emit IncreasedWeight(to, weightValue, weightValue, paymentContract);
     }
 
-    function increaseWeight(uint256 additionalWeightPrice, address paymentContract) nonReentrant external {
+    function increaseWeight(uint256 additionalWeightPrice, address paymentContract) external {
         increaseWeight(msg.sender, additionalWeightPrice, paymentContract);
     }
 
@@ -93,19 +93,19 @@ contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
         _requireOwnToken(to);
         uint256 decimals = _getDecimalForPaymentContract(paymentContract);
         _pay(additionalWeightPrice, paymentContract);
-        uint256 additionalWeight = additionalWeightPrice * (10 ** (weightDecimals - decimals));
+        uint256 additionalWeight = additionalWeightPrice * (10 ** (WEIGHT_DECIMALS - decimals));
         _weight[to] += additionalWeight;
         emit IncreasedWeight(to, _weight[to], additionalWeight, paymentContract);
     }
 
-    function weightOf(address owner) external view returns (uint256 weight) {
-        _requireOwnToken(owner);
-        return _weight[owner];
+    function weightOf(address tokenOwner) external view returns (uint256 weight) {
+        _requireOwnToken(tokenOwner);
+        return _weight[tokenOwner];
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         _requireMinted(tokenId);
-        return _baseTokenURI;
+        return _BASE_TOKEN_URI;
     }
 
     function checkSignAndMetadata(string memory websiteDomain, uint256 signCurrentBlock, bytes32 uniqueToken, bytes memory signature) external view returns (bool, address) {
@@ -119,7 +119,7 @@ contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
 
     // Private functions
     function _checkSignAndAddress(string memory websiteDomain, uint256 signCurrentBlock, bytes32 uniqueToken, bytes memory signature) private view returns (address) {
-        require((block.number - signCurrentBlock) <= blockTimeTolerance, "NebulAuth: Request expired, signature block time out of tolerance range");
+        require((block.number - signCurrentBlock) <= BLOCK_TIME_TOLERANCE, "NebulAuth: Request expired, signature block time out of tolerance range");
         address signerAddr = ECDSA.recover(_getDigest(websiteDomain, signCurrentBlock, uniqueToken), signature);
         _requireOwnToken(signerAddr);
         return signerAddr;
@@ -138,12 +138,12 @@ contract NebulAuth is ERC721Frozen, EIP712, Ownable, ReentrancyGuard {
                     abi.encodeWithSignature(
                         "transferFrom(address,address,uint256)",
                         msg.sender,
-                        _fundsAddress,
+                        _FUNDS_ADDRESS,
                         amount
                     )
                 ),
                 (bool)
-            ) == true,
+            ),
             "NebulAuth: Failure during payment"
         );
     }

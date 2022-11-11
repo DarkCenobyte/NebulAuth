@@ -124,17 +124,19 @@ a=function(){return function(e){var t={};function r(n){if(t[n])return t[n].expor
 <p id="error-msg"></p>
 </div>
 <script>
-window._NEBULAUTH_CONTRACT_ADDRESS = '0x43887b88E980F6235776f18b3DD90E83d3F9E4DB';
+window._NEBULAUTH_CONTRACT_ADDRESS = '0x738F7DCe5c7812BC3425eCF35a59a2f21E8cbD69';
 window._NEBULAUTH_CHAINID = 11155111;
 window._NEBULAUTH_VERSION = '1';
 window._NEBULAUTH_NAME = 'NebulAuth';
+window._NEBULAUTH_SUBDOMAIN = 'auth-test';
+window._NEBULAUTH_ONLY_HTTPS = false;
 
 const keys = ['nauth_antiphishing', 'nauth_mail', 'nauth_username', 'nauth_updatedat'];
 function getCookieValue(key) {
 return decodeURIComponent(document.cookie.split('; ').find((r) => r.startsWith(key + '='))?.split('=')[1] || '');
 }
 function getDomain() {
-return window.location.hostname.replace('auth.', '');
+return window.location.hostname.replace(_NEBULAUTH_SUBDOMAIN + '.', '');
 }
 function loadCookie() {
 const antiphishing = getCookieValue('nauth_antiphishing');
@@ -210,6 +212,10 @@ callbackUrl = callbackUrl.startsWith('/') ? urlParams.get('callback').substring(
 let redirectionUrl = null;
 try {
 redirectionUrl = new URL(websiteDomain);
+if (_NEBULAUTH_ONLY_HTTPS && redirectionUrl.protocol !== 'https:') {
+console.error('Invalid domain, HTTPS required');
+throw new Error('Invalid domain, HTTPS required');
+}
 } catch (err) {
 document.getElementById('error-msg').textContent = 'Invalid domain, please report this error to the website that redirect you here';
 document.getElementById('sign-status').textContent = '❌';
