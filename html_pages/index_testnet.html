@@ -202,17 +202,21 @@ verifyingContract: _NEBULAUTH_CONTRACT_ADDRESS
 const urlParams = new URLSearchParams(window.location.search);
 const websiteDomain = urlParams.get('websiteDomain'); /* https://my-domain.com */
 let callbackUrl = urlParams.get('callback'); /* /url/to/signing/handling */
+let redirectUrl = urlParams.get('redirect'); /* /url/to/redirect/user */
 const uniqueToken = urlParams.get('uniqueToken'); /* web3.utils.randomHex(32) */
-if (websiteDomain === null || callbackUrl === null || uniqueToken === null) {
+if (websiteDomain === null || redirectUrl === null || uniqueToken === null) {
 document.getElementById('error-msg').textContent = 'Missing mandatory parameter, please report this error to the website that redirect you here';
 document.getElementById('sign-status').textContent = '❌';
-throw new Error('Missing mandatory parameter (require websiteDomain, callback and uniqueToken)');
+throw new Error('Missing mandatory parameter (require websiteDomain, redirect and uniqueToken)');
 }
+redirectUrl = redirectUrl.startsWith('/') ? urlParams.get('redirect').substring(1) : urlParams.get('redirect'); /* remove leading '/' of the redirect url */
+if (callbackUrl !== null) {
 callbackUrl = callbackUrl.startsWith('/') ? urlParams.get('callback').substring(1) : urlParams.get('callback'); /* remove leading '/' of the callback url */
-let redirectionUrl = null;
+}
+let domainBaseUrl = null;
 try {
-redirectionUrl = new URL(websiteDomain);
-if (_NEBULAUTH_ONLY_HTTPS && redirectionUrl.protocol !== 'https:') {
+domainBaseUrl = new URL(websiteDomain);
+if (_NEBULAUTH_ONLY_HTTPS && domainBaseUrl.protocol !== 'https:') {
 console.error('Invalid domain, HTTPS required');
 throw new Error('Invalid domain, HTTPS required');
 }
@@ -283,7 +287,32 @@ const optionalData = btoa(JSON.stringify({
 username: NEBULAUTH_USER_USERNAME === '' ? undefined : NEBULAUTH_USER_USERNAME,
 mail: NEBULAUTH_USER_MAIL === '' ? undefined : NEBULAUTH_USER_MAIL
 }));
-window.location = redirectionUrl.href + callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'nebulauth_response=' + nebulauthResponse + '&nebulauth_optional=' + optionalData;
+if (callbackUrl !== null) {
+const headers = new Headers();
+headers.append('X-NebulAuth-UniqueToken', uniqueToken);
+headers.append('X-NebulAuth-Response', nebulauthResponse);
+headers.append('X-NebulAuth-Optional', optionalData);
+const callbackConfig = {
+method: 'POST',
+headers,
+mode: 'no-cors',
+cache: 'no-store'
+};
+const callbackRequest = new Request(domainBaseUrl.href + callbackUrl, callbackConfig);
+try {
+const response = await fetch(callbackRequest, callbackConfig);
+if (! response.ok) {
+throw new Error('Unexpected status response from callback');
+}
+} catch (err) {
+document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
+document.getElementById('sign-status').textContent = '❌';
+throw err;
+}
+window.location = domainBaseUrl.href + redirectUrl;
+} else {
+window.location = domainBaseUrl.href + redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + 'nebulauth_response=' + nebulauthResponse + '&nebulauth_optional=' + optionalData;
+}
 }
 checkCookie();
 loadCookie();
