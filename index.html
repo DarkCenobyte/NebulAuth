@@ -297,6 +297,21 @@
   
   
     <li class="md-nav__item">
+      <a href="contracts/" class="md-nav__link">
+        Contracts
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
       <a href="quickstart/" class="md-nav__link">
         Quickstart
       </a>
@@ -421,7 +436,7 @@
 <h2 id="how-it-works">How it works</h2>
 <p>You offer your users to register or identify themselves using NebulAuth, in a similar way to OAuth implementations.</p>
 <p>NebulAuth will require to your user to get an NFT (it's a one-time process for a customer, and this NFT is usable for any website implementing the NebulAuth protocol)</p>
-<p>By making this choice, your users are redirected to a decentralized web page (stored on the IPFS network), which will then ask their web3 wallet (MetaMask, ...), to digitally sign a connection request. Then answer to a callback URL of your website a payload and the associated signature.</p>
+<p>By making this choice, your users are redirected to a decentralized web page (stored on the IPFS network), which will then ask their web3 wallet (MetaMask, ...), to digitally sign a connection request. Then answer to a callback URL of your website a payload and the associated signature through headers, and then will redirect your user to your website.</p>
 <p>Your website will then contact the NebulAuth smartcontract to confirm the validity of the signature, the payload, and provide you the verified wallet address of your user.</p>
 <p>If everything is in order, you can proceed with the connection/registration of your user.</p>
 <h2 id="pricing">Pricing</h2>
@@ -493,13 +508,13 @@ The advantage of this protocol is to come with multiples additional features lik
       
       
         
-        <a href="quickstart/" class="md-footer__link md-footer__link--next" aria-label="Next: Quickstart" rel="next">
+        <a href="contracts/" class="md-footer__link md-footer__link--next" aria-label="Next: Contracts" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Quickstart
+              Contracts
             </div>
           </div>
           <div class="md-footer__button md-icon">
