@@ -12,7 +12,7 @@ You offer your users to register or identify themselves using NebulAuth, in a si
 
 NebulAuth will require to your user to get an NFT (it's a one-time process for a customer, and this NFT is usable for any website implementing the NebulAuth protocol)
 
-By making this choice, your users are redirected to a decentralized web page (stored on the IPFS network), which will then ask their web3 wallet (MetaMask, ...), to digitally sign a connection request. Then answer to a callback URL of your website a payload and the associated signature.
+By making this choice, your users are redirected to a decentralized web page (stored on the IPFS network), which will then ask their web3 wallet (MetaMask, ...), to digitally sign a connection request. Then answer to a callback URL of your website a payload and the associated signature through headers, and then will redirect your user to your website.
 
 Your website will then contact the NebulAuth smartcontract to confirm the validity of the signature, the payload, and provide you the verified wallet address of your user.
 
