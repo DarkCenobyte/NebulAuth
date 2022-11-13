@@ -131,226 +131,242 @@ window._NEBULAUTH_VERSION = '1';
 window._NEBULAUTH_NAME = 'NebulAuth';
 window._NEBULAUTH_SUBDOMAIN = 'auth';
 window._NEBULAUTH_ONLY_HTTPS = true;
-
 const keys = ['nauth_antiphishing', 'nauth_mail', 'nauth_username', 'nauth_updatedat'];
+
 function getCookieValue(key) {
-return decodeURIComponent(document.cookie.split('; ').find((r) => r.startsWith(key + '='))?.split('=')[1] || '');
+	return decodeURIComponent(document.cookie.split('; ').find((r) => r.startsWith(key + '='))?.split('=')[1] || '');
 }
+
 function getDomain() {
-return window.location.hostname.replace(_NEBULAUTH_SUBDOMAIN + '.', '');
+	return window.location.hostname.replace(_NEBULAUTH_SUBDOMAIN + '.', '');
 }
+
 function loadCookie() {
-const antiphishing = getCookieValue('nauth_antiphishing');
-window.NEBULAUTH_USER_MAIL = getCookieValue('nauth_mail');
-window.NEBULAUTH_USER_USERNAME = getCookieValue('nauth_username');
-window.NEBULAUTH_USER_UPDATED_AT = getCookieValue('nauth_updatedat');
-if (antiphishing) {
-document.getElementById('antiphishing').textContent = 'Anti-phishing code: ' + antiphishing;
+	const antiphishing = getCookieValue('nauth_antiphishing');
+	window.NEBULAUTH_USER_MAIL = getCookieValue('nauth_mail');
+	window.NEBULAUTH_USER_USERNAME = getCookieValue('nauth_username');
+	window.NEBULAUTH_USER_UPDATED_AT = getCookieValue('nauth_updatedat');
+	if (antiphishing) {
+		document.getElementById('antiphishing').textContent = 'Anti-phishing code: ' + antiphishing;
+	}
 }
-}
+
 function exportToLocalStorage() {
-for (const key of keys) {
-localStorage.setItem(key, getCookieValue(key));
+	for (const key of keys) {
+		localStorage.setItem(key, getCookieValue(key));
+	}
 }
-}
+
 function importFromLocalStorage() {
-for (const key of keys) {
-updateCookie(key, localStorage.getItem(key), false, false);
+	for (const key of keys) {
+		updateCookie(key, localStorage.getItem(key), false, false);
+	}
 }
-}
+
 function updateCookie(key, value, updateDate = true, replicateToLocalStorage = true) {
-document.cookie = key + '=' + encodeURIComponent(value) + '; domain=' + getDomain() + '; max-age=34560000; SameSite=strict; Secure';
-if (updateDate) {
-document.cookie = 'nauth_updatedat=' + Date.now() + '; domain=' + getDomain() + '; max-age=34560000; SameSite=strict; Secure';
+	document.cookie = key + '=' + encodeURIComponent(value) + '; domain=' + getDomain() + '; max-age=34560000; SameSite=strict; Secure';
+	if (updateDate) {
+		document.cookie = 'nauth_updatedat=' + Date.now() + '; domain=' + getDomain() + '; max-age=34560000; SameSite=strict; Secure';
+	}
+	if (replicateToLocalStorage) {
+		exportToLocalStorage();
+	}
 }
-if (replicateToLocalStorage) {
-exportToLocalStorage();
-}
-}
+
 function checkCookie() {
-for (const key of keys) {
-if (localStorage.getItem(key) === undefined || localStorage.getItem(key) === null) {
-localStorage.setItem(key, '');
-}
-}
-const last_localStorage = localStorage.getItem('nauth_updatedat');
-const last_cookie = getCookieValue('nauth_updatedat');
-if (!last_cookie && !last_localStorage) {
-return;
-}
-if (parseInt(last_cookie || 0, 10) > parseInt(last_localStorage || 0, 10)) {
-exportToLocalStorage();
-} else {
-importFromLocalStorage();
-}
+	for (const key of keys) {
+		if (localStorage.getItem(key) === undefined || localStorage.getItem(key) === null) {
+			localStorage.setItem(key, '');
+		}
+	}
+	const last_localStorage = localStorage.getItem('nauth_updatedat');
+	const last_cookie = getCookieValue('nauth_updatedat');
+	if (!last_cookie && !last_localStorage) {
+		return;
+	}
+	if (parseInt(last_cookie || 0, 10) > parseInt(last_localStorage || 0, 10)) {
+		exportToLocalStorage();
+	} else {
+		importFromLocalStorage();
+	}
 }
 async function switchNetworkIfNeeded() {
-const currentChainId = await web3.eth.net.getId();
-if (currentChainId !== _NEBULAUTH_CHAINID) {
-try {
-await web3.currentProvider.request(
-{
-method: 'wallet_switchEthereumChain',
-params: [{
-chainId: web3.utils.toHex(_NEBULAUTH_CHAINID)
-}],
-}
-);
-} catch (err) {
-if (err.code === 4902) {
-document.getElementById('error-msg').textContent = 'Wallet not configured to handle the expected network: ' + _NEBULAUTH_NETWORK_NAME + '(chainId: ' + _NEBULAUTH_CHAINID + ')';
-document.getElementById('sign-status').textContent = '❌';
-throw new Error('Require user action: Add the network to their web3 wallet');
-} else {
-document.getElementById('error-msg').textContent = 'Unexpected error from wallet, try to switch to the following network: ' + _NEBULAUTH_NETWORK_NAME + '(chainId: ' + _NEBULAUTH_CHAINID + ')';
-document.getElementById('sign-status').textContent = '❌';
-throw err;
-}
-}
-}
+	const currentChainId = await web3.eth.net.getId();
+	if (currentChainId !== _NEBULAUTH_CHAINID) {
+		try {
+			await web3.currentProvider.request({
+				method: 'wallet_switchEthereumChain',
+				params: [{
+					chainId: web3.utils.toHex(_NEBULAUTH_CHAINID)
+				}],
+			});
+		} catch (err) {
+			if (err.code === 4902) {
+				document.getElementById('error-msg').textContent = 'Wallet not configured to handle the expected network: ' + _NEBULAUTH_NETWORK_NAME + '(chainId: ' + _NEBULAUTH_CHAINID + ')';
+				document.getElementById('sign-status').textContent = '❌';
+				throw new Error('Require user action: Add the network to their web3 wallet');
+			} else {
+				document.getElementById('error-msg').textContent = 'Unexpected error from wallet, try to switch to the following network: ' + _NEBULAUTH_NETWORK_NAME + '(chainId: ' + _NEBULAUTH_CHAINID + ')';
+				document.getElementById('sign-status').textContent = '❌';
+				throw err;
+			}
+		}
+	}
 }
 async function sign() {
-if (window.ethereum) {
-window.web3 = new Web3(window.ethereum);
-await window.ethereum.enable();
-} else {
-document.getElementById('error-msg').textContent = 'Unable to detect any web3 wallet. Please install a supported web3 wallet (metamask, ...)';
-document.getElementById('sign-status').textContent = '❌';
-throw new Error('No ethereum wallet detected');
-}
-await switchNetworkIfNeeded();
-const from = await web3.eth.getAccounts();
-const domain = {
-name: _NEBULAUTH_NAME,
-version: _NEBULAUTH_VERSION,
-chainId: _NEBULAUTH_CHAINID,
-verifyingContract: _NEBULAUTH_CONTRACT_ADDRESS
-};
-const urlParams = new URLSearchParams(window.location.search);
-const websiteDomain = urlParams.get('websiteDomain'); /* https://my-domain.com */
-let callbackUrl = urlParams.get('callback'); /* /url/to/signing/handling */
-let redirectUrl = urlParams.get('redirect'); /* /url/to/redirect/user */
-const uniqueToken = urlParams.get('uniqueToken'); /* web3.utils.randomHex(32) */
-if (websiteDomain === null || redirectUrl === null || uniqueToken === null) {
-document.getElementById('error-msg').textContent = 'Missing mandatory parameter, please report this error to the website that redirect you here';
-document.getElementById('sign-status').textContent = '❌';
-throw new Error('Missing mandatory parameter (require websiteDomain, redirect and uniqueToken)');
-}
-redirectUrl = redirectUrl.startsWith('/') ? urlParams.get('redirect').substring(1) : urlParams.get('redirect'); /* remove leading '/' of the redirect url */
-if (callbackUrl !== null) {
-callbackUrl = callbackUrl.startsWith('/') ? urlParams.get('callback').substring(1) : urlParams.get('callback'); /* remove leading '/' of the callback url */
-}
-let domainBaseUrl = null;
-try {
-domainBaseUrl = new URL(websiteDomain);
-if (_NEBULAUTH_ONLY_HTTPS && domainBaseUrl.protocol !== 'https:') {
-console.error('Invalid domain, HTTPS required');
-throw new Error('Invalid domain, HTTPS required');
-}
-} catch (err) {
-document.getElementById('error-msg').textContent = 'Invalid domain, please report this error to the website that redirect you here';
-document.getElementById('sign-status').textContent = '❌';
-throw new Error('Invalid domain');
-}
-if (! web3.utils.isHexStrict(uniqueToken) || web3.utils.hexToBytes(uniqueToken).length !== 32) {
-document.getElementById('error-msg').textContent = 'Invalid uniqueToken, please report this error to the website that redirect you here';
-document.getElementById('sign-status').textContent = '❌';
-throw new Error('Invalid uniqueToken');
-}
-const currentBlock = (await web3.eth.getBlock('latest', false)).number;
-const message = {
-websiteDomain,
-currentBlock,
-uniqueToken
-};
-const payload = {
-domain,
-message,
-types: {
-EIP712Domain: [
-{ name: 'name', type: 'string' },
-{ name: 'version', type: 'string' },
-{ name: 'chainId', type: 'uint256' },
-{ name: 'verifyingContract', type: 'address' }
-],
-Authorizer: [
-{ name: 'websiteDomain', type: 'string' },
-{ name: 'currentBlock', type: 'uint256' },
-{ name: 'uniqueToken', type: 'bytes32' }
-]
-},
-primaryType: 'Authorizer'
-}
-let signature = null;
-try {
-signature = (await web3.currentProvider.send(
-{
-method: 'eth_signTypedData_v4',
-params: [from[0], JSON.stringify(payload)],
-from: from[0]
-}
-)).result;
-} catch (err) {
-/* try compatibility with non-stringify payload */
-signature = (await web3.currentProvider.send(
-{
-method: 'eth_signTypedData_v4',
-params: [from[0], payload],
-from: from[0]
-}
-)).result;
-}
-if (signature === null) {
-document.getElementById('error-msg').textContent = 'Unable to sign the payload';
-document.getElementById('sign-status').textContent = '❌';
-throw new Error('Unable to sign the payload');
-}
-document.getElementById('sign-status').textContent = '✅';
-const nebulauthResponse = btoa(JSON.stringify({
-message: payload.message,
-signature
-}));
-const optionalData = btoa(JSON.stringify({
-username: NEBULAUTH_USER_USERNAME === '' ? undefined : NEBULAUTH_USER_USERNAME,
-mail: NEBULAUTH_USER_MAIL === '' ? undefined : NEBULAUTH_USER_MAIL
-}));
-if (callbackUrl !== null) {
-const headers = new Headers();
-headers.append('X-NebulAuth-UniqueToken', uniqueToken);
-headers.append('X-NebulAuth-Response', nebulauthResponse);
-headers.append('X-NebulAuth-Optional', optionalData);
-const callbackConfig = {
-method: 'POST',
-headers,
-mode: 'no-cors',
-cache: 'no-store'
-};
-const callbackRequest = new Request(domainBaseUrl.href + callbackUrl, callbackConfig);
-try {
-const response = await fetch(callbackRequest, callbackConfig);
-if (! response.ok) {
-throw new Error('Unexpected status response from callback');
-}
-} catch (err) {
-if (response === undefined) {
-document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
-} else {
-switch (response.status) {
-case 401:
-case 403:
-document.getElementById('error-msg').textContent = 'Unauthorized';
-break;
-default:
-document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
-}
-}
-document.getElementById('sign-status').textContent = '❌';
-throw err;
-}
-window.location = domainBaseUrl.href + redirectUrl;
-} else {
-window.location = domainBaseUrl.href + redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + 'nebulauth_response=' + nebulauthResponse + '&nebulauth_optional=' + optionalData;
-}
+	if (window.ethereum) {
+		window.web3 = new Web3(window.ethereum);
+		await window.ethereum.enable();
+	} else {
+		document.getElementById('error-msg').textContent = 'Unable to detect any web3 wallet. Please install a supported web3 wallet (metamask, ...)';
+		document.getElementById('sign-status').textContent = '❌';
+		throw new Error('No ethereum wallet detected');
+	}
+	await switchNetworkIfNeeded();
+	const from = await web3.eth.getAccounts();
+	const domain = {
+		name: _NEBULAUTH_NAME,
+		version: _NEBULAUTH_VERSION,
+		chainId: _NEBULAUTH_CHAINID,
+		verifyingContract: _NEBULAUTH_CONTRACT_ADDRESS
+	};
+	const urlParams = new URLSearchParams(window.location.search);
+	const websiteDomain = urlParams.get('websiteDomain'); /* https://my-domain.com */
+	let callbackUrl = urlParams.get('callback'); /* /url/to/signing/handling */
+	let redirectUrl = urlParams.get('redirect'); /* /url/to/redirect/user */
+	const uniqueToken = urlParams.get('uniqueToken'); /* web3.utils.randomHex(32) */
+	if (websiteDomain === null || redirectUrl === null || uniqueToken === null) {
+		document.getElementById('error-msg').textContent = 'Missing mandatory parameter, please report this error to the website that redirect you here';
+		document.getElementById('sign-status').textContent = '❌';
+		throw new Error('Missing mandatory parameter (require websiteDomain, redirect and uniqueToken)');
+	}
+	redirectUrl = redirectUrl.startsWith('/') ? urlParams.get('redirect').substring(1) : urlParams.get('redirect'); /* remove leading '/' of the redirect url */
+	if (callbackUrl !== null) {
+		callbackUrl = callbackUrl.startsWith('/') ? urlParams.get('callback').substring(1) : urlParams.get('callback'); /* remove leading '/' of the callback url */
+	}
+	let domainBaseUrl = null;
+	try {
+		domainBaseUrl = new URL(websiteDomain);
+		if (_NEBULAUTH_ONLY_HTTPS && domainBaseUrl.protocol !== 'https:') {
+			console.error('Invalid domain, HTTPS required');
+			throw new Error('Invalid domain, HTTPS required');
+		}
+	} catch (err) {
+		document.getElementById('error-msg').textContent = 'Invalid domain, please report this error to the website that redirect you here';
+		document.getElementById('sign-status').textContent = '❌';
+		throw new Error('Invalid domain');
+	}
+	if (!web3.utils.isHexStrict(uniqueToken) || web3.utils.hexToBytes(uniqueToken).length !== 32) {
+		document.getElementById('error-msg').textContent = 'Invalid uniqueToken, please report this error to the website that redirect you here';
+		document.getElementById('sign-status').textContent = '❌';
+		throw new Error('Invalid uniqueToken');
+	}
+	const currentBlock = (await web3.eth.getBlock('latest', false)).number;
+	const message = {
+		websiteDomain,
+		currentBlock,
+		uniqueToken
+	};
+	const payload = {
+		domain,
+		message,
+		types: {
+			EIP712Domain: [{
+				name: 'name',
+				type: 'string'
+			}, {
+				name: 'version',
+				type: 'string'
+			}, {
+				name: 'chainId',
+				type: 'uint256'
+			}, {
+				name: 'verifyingContract',
+				type: 'address'
+			}],
+			Authorizer: [{
+				name: 'websiteDomain',
+				type: 'string'
+			}, {
+				name: 'currentBlock',
+				type: 'uint256'
+			}, {
+				name: 'uniqueToken',
+				type: 'bytes32'
+			}]
+		},
+		primaryType: 'Authorizer'
+	}
+	let signature = null;
+	const isSendAsyncAvailable = web3.currentProvider.sendAsync !== undefined;
+	try {
+		signature = (await web3.currentProvider[isSendAsyncAvailable ? 'sendAsync' : 'send']({
+			method: 'eth_signTypedData_v4',
+			params: [
+				from[0],
+				JSON.stringify(payload)
+			],
+			from: from[0]
+		})).result;
+	} catch (err) {
+		/* try compatibility with non-stringify payload */
+		signature = (await web3.currentProvider[isSendAsyncAvailable ? 'sendAsync' : 'send']({
+			method: 'eth_signTypedData_v4',
+			params: [from[0], payload],
+			from: from[0]
+		})).result;
+	}
+	if (signature === null) {
+		document.getElementById('error-msg').textContent = 'Unable to sign the payload';
+		document.getElementById('sign-status').textContent = '❌';
+		throw new Error('Unable to sign the payload');
+	}
+	document.getElementById('sign-status').textContent = '✅';
+	const nebulauthResponse = btoa(JSON.stringify({
+		message: payload.message,
+		signature
+	}));
+	const optionalData = btoa(JSON.stringify({
+		username: NEBULAUTH_USER_USERNAME === '' ? undefined : NEBULAUTH_USER_USERNAME,
+		mail: NEBULAUTH_USER_MAIL === '' ? undefined : NEBULAUTH_USER_MAIL
+	}));
+	if (callbackUrl !== null) {
+		const headers = new Headers();
+		headers.append('X-NebulAuth-UniqueToken', uniqueToken);
+		headers.append('X-NebulAuth-Response', nebulauthResponse);
+		headers.append('X-NebulAuth-Optional', optionalData);
+		const callbackConfig = {
+			method: 'POST',
+			headers,
+			mode: 'no-cors',
+			cache: 'no-store'
+		};
+		const callbackRequest = new Request(domainBaseUrl.href + callbackUrl, callbackConfig);
+		try {
+			const response = await fetch(callbackRequest, callbackConfig);
+			if (!response.ok) {
+				throw new Error('Unexpected status response from callback');
+			}
+		} catch (err) {
+			if (response === undefined) {
+				document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
+			} else {
+				switch (response.status) {
+					case 401:
+					case 403:
+						document.getElementById('error-msg').textContent = 'Unauthorized';
+						break;
+					default:
+						document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
+				}
+			}
+			document.getElementById('sign-status').textContent = '❌';
+			throw err;
+		}
+		window.location = domainBaseUrl.href + redirectUrl;
+	} else {
+		window.location = domainBaseUrl.href + redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + 'nebulauth_response=' + nebulauthResponse + '&nebulauth_optional=' + optionalData;
+	}
 }
 checkCookie();
 loadCookie();
