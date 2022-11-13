@@ -332,7 +332,18 @@ if (! response.ok) {
 throw new Error('Unexpected status response from callback');
 }
 } catch (err) {
+if (response === undefined) {
 document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
+} else {
+switch (response.status) {
+case 401:
+case 403:
+document.getElementById('error-msg').textContent = 'Unauthorized';
+break;
+default:
+document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
+}
+}
 document.getElementById('sign-status').textContent = '❌';
 throw err;
 }
