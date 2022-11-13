@@ -298,28 +298,34 @@ async function sign() {
 		primaryType: 'Authorizer'
 	}
 	let signature = null;
-	const isSendAsyncAvailable = web3.currentProvider.sendAsync !== undefined;
+	const sendMethod = web3.currentProvider.request !== undefined ? 'request' : (web3.currentProvider.sendAsync !== undefined ? 'sendAsync' : 'send');
 	try {
-		signature = (await web3.currentProvider[isSendAsyncAvailable ? 'sendAsync' : 'send']({
+		signature = (await web3.currentProvider[sendMethod]({
 			method: 'eth_signTypedData_v4',
 			params: [
 				from[0],
 				JSON.stringify(payload)
 			],
 			from: from[0]
-		})).result;
+		}));
 	} catch (err) {
 		/* try compatibility with non-stringify payload */
-		signature = (await web3.currentProvider[isSendAsyncAvailable ? 'sendAsync' : 'send']({
+		signature = (await web3.currentProvider[sendMethod]({
 			method: 'eth_signTypedData_v4',
-			params: [from[0], payload],
+			params: [
+				from[0],
+				payload
+			],
 			from: from[0]
-		})).result;
+		}));
 	}
-	if (signature === null) {
+	if (signature === null || signature === undefined) {
 		document.getElementById('error-msg').textContent = 'Unable to sign the payload';
 		document.getElementById('sign-status').textContent = '❌';
 		throw new Error('Unable to sign the payload');
+	}
+	if (typeof signature !== 'string') {
+		signature = signature.result;
 	}
 	document.getElementById('sign-status').textContent = '✅';
 	const nebulauthResponse = btoa(JSON.stringify({
@@ -338,12 +344,13 @@ async function sign() {
 		const callbackConfig = {
 			method: 'POST',
 			headers,
-			mode: 'no-cors',
+			mode: 'cors',
 			cache: 'no-store'
 		};
 		const callbackRequest = new Request(domainBaseUrl.href + callbackUrl, callbackConfig);
+		let response = undefined;
 		try {
-			const response = await fetch(callbackRequest, callbackConfig);
+			response = await fetch(callbackRequest);
 			if (!response.ok) {
 				throw new Error('Unexpected status response from callback');
 			}
@@ -351,6 +358,7 @@ async function sign() {
 			if (response === undefined) {
 				document.getElementById('error-msg').textContent = 'Unexpected response from callback. Please report this error to the website that redirect you here';
 			} else {
+				console.error('Rejected signin with HTTP status code', response.status);
 				switch (response.status) {
 					case 401:
 					case 403:

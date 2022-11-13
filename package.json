@@ -4,6 +4,7 @@
     "@truffle/hdwallet-provider": "^1.7.0"
   },
   "devDependencies": {
-    "truffle-plugin-verify": "^0.5.32"
+    "truffle-plugin-verify": "^0.5.32",
+    "dotenv": "^16.0.3"
   }
 }
